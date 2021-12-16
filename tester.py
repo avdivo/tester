@@ -256,7 +256,7 @@ class App(Tk):
 
         # Элементы управления
         sf = tkFont.Font(family='Helvetica', size=16, weight='bold')
-        self.dict_list = Listbox(height=20, width=40, font=sf)
+        self.dict_list = Listbox(self, height=20, width=40, font=sf, selectmode='multiple',exportselection=0)
         self.word = Entry(self, width=5, font="Helvetica 14", textvariable=self.words)
         lab = Label(text="СЛУЧАЙНЫХ СЛОВ", font="Helvetica 14")
         self.start_btn = Button(self, text='Начать', command=self.start, font="Helvetica 14", width=35)
@@ -277,27 +277,28 @@ class App(Tk):
 
     # Начать тест
     def start(self):
+        # Готовим список имен выбранных файлов
+        selected_files = [self.dict_list.get(i) for i in self.dict_list.curselection()]
+        if not len(selected_files):
+            return
+        # Готовим список слов из выбранных словарей
+        word_all = []
+        for i in selected_files:
+            file = PATH + f'\{i}.xlsx'  # Путь к очередному файлу
+            excel_df = pd.read_excel(file, 'Sheet0')  # Читаем файл в DataFrame
+            word_all += [(b[0], b[1]) for a, b in excel_df.iterrows()]  # Перенос ataFrame в список кортежей
         # Если указано какое-то количество случайных слов, то готовим список
-        # Если не указано, то готовим список из выбранного словаря
+        # выбирая нужное количество случайных слов (с повторами)
         if self.words.get().isdigit():
-            word_all = []
-            for i in self.files:
-                file = PATH + f'\{i}'  # Путь к очередному файлу
-                excel_df = pd.read_excel(file, 'Sheet0')  # Читаем файл в DataFrame
-                word_all += [(b[0], b[1]) for a, b in excel_df.iterrows()]  # Перенос ataFrame в список кортежей
+            word_cast = [word_all[random.randint(0, len(word_all) - 1)] for i in range(0, int(self.words.get()))]
 
             # Выбор случайных позиций из всего списка (не повторяющихся)
             # word_cast = []
             # while len(word_cast) < int(words.get()):
             #     word_cast += [word_all[random.randint(0, len(word_all))]]
-
-            # Выбор случайных позиций из всего списка (с повторами)
-            word_cast = [word_all[random.randint(0, len(word_all) - 1)] for i in range(0, int(self.words.get()))]
         else:
-            # Случайные слова выбирать не надо, берем выбранный словарь целиком
-            file = PATH + f'\{self.files[self.dict_list.curselection()[0]]}'  # Путь к файлу
-            excel_df = pd.read_excel(file, 'Sheet0')  # Читаем файл в DataFrame
-            word_cast = [(b[0], b[1]) for a, b in excel_df.iterrows()]  # Перенос ataFrame в список кортежей
+            # Случайные слова выбирать не надо, берем список слов целиком
+            word_cast = word_all
             random.shuffle(word_cast) # Перемешиваем список заданий
 
         tester = About(self, word_cast)

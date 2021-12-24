@@ -87,8 +87,8 @@ class App(Tk):
         word_all = []
         for i in selected_files:
             file = cn.PATH + f'\{i}.xlsx'  # Путь к очередному файлу
-            excel_df = pd.read_excel(file, 'Sheet0')  # Читаем файл в DataFrame
-            word_all += [(b[0], b[1]) for a, b in excel_df.iterrows()]  # Перенос ataFrame в список кортежей
+            excel_df = pd.read_excel(file, 'Sheet0', header=None)  # Читаем файл в DataFrame
+            word_all += [(a[1][0], a[1][1]) for a in excel_df.iterrows()]  # Перенос ataFrame в список кортежей
         return word_all
 
     # Клик по ListBox для очистки поля ввода количества случайных слов
